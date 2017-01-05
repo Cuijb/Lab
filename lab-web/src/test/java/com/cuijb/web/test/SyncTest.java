@@ -4,13 +4,17 @@ import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.junit.Test;
+
 public class SyncTest {
 
-	public void SyncTest() {
-		final SortedSet<String> sortedSet = Collections.synchronizedSortedSet(new TreeSet<String>());
+	@Test
+	public void syncTest() {
+		SortedSet<String> sortedSet = Collections.synchronizedSortedSet(new TreeSet<String>());
 		// SortedSet<String> sortedSet = new TreeSet<String>();
 		new Thread(new Runnable() {
 
+			@Override
 			public void run() {
 				// synchronized (sortedSet) {
 				for (int i = 0; i < 10; i++) {
@@ -23,6 +27,7 @@ public class SyncTest {
 		}).start();
 		new Thread(new Runnable() {
 
+			@Override
 			public void run() {
 				// synchronized (sortedSet) {
 				for (int i = 0; i < 10; i++) {

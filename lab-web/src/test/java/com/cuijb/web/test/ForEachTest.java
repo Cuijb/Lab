@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.junit.Test;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -12,7 +14,8 @@ public class ForEachTest {
 	// Foreach、Iterator循环过程删除报并发异常
 	// .size() for循环 多线程 数组越界
 
-	public static void main(String[] args) {
+	@Test
+	public void testList() {
 		List<String> list = new ArrayList<String>();
 		list.add("a");
 		list.add("b");
