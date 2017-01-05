@@ -9,8 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ForEachTest {
 
-	// Foreach¡¢IteratorÑ­»·¹ı³ÌÉ¾³ı±¨²¢·¢Òì³£
-	// .size() forÑ­»· ¶àÏß³Ì Êı×éÔ½½ç
+	// Foreachã€Iteratorå¾ªç¯è¿‡ç¨‹åˆ é™¤æŠ¥å¹¶å‘å¼‚å¸¸
+	// .size() forå¾ªç¯ å¤šçº¿ç¨‹ æ•°ç»„è¶Šç•Œ
 
 	public static void main(String[] args) {
 		List<String> list = new ArrayList<String>();
@@ -42,6 +42,7 @@ public class ForEachTest {
 		log.debug("iterator start.");
 		for (Iterator<String> iter = list.iterator(); iter.hasNext();) {
 			String str = iter.next();
+			log.debug("iterator with " + str);
 			if (str.equals("g")) {
 				iter.remove();
 			}
