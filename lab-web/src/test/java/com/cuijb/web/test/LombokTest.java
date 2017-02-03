@@ -8,7 +8,7 @@ import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class LombokTest {
+public class LombokTest extends BaseTest {
 
 	@Test
 	public void junitTest() {

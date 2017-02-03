@@ -9,7 +9,7 @@ import org.junit.Test;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ForEachTest {
+public class ForEachTest extends BaseTest {
 
 	// Foreach、Iterator循环过程删除报并发异常
 	// .size() for循环 多线程 数组越界

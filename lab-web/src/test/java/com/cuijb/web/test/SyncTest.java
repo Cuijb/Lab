@@ -6,7 +6,7 @@ import java.util.TreeSet;
 
 import org.junit.Test;
 
-public class SyncTest {
+public class SyncTest extends BaseTest {
 
 	@Test
 	public void syncTest() {
