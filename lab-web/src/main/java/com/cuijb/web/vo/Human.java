@@ -30,4 +30,14 @@ public class Human {
 			}
 		}
 	}
+
+	public String introduce() {
+		return "I am Human!";
+	}
+
+	protected class mouth {
+		public void say() {
+			System.out.println(introduce());
+		}
+	}
 }
