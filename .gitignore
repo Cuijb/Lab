@@ -1,1 +1,7 @@
-target/
+*.class
+*.apk
+.classpath
+.project
+.settings
+bin
+target
