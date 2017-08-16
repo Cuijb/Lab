@@ -21,7 +21,7 @@ public class SyncTest extends BaseTest {
 			@Override
 			public void run() {
 				// synchronized (sortedSet) {
-				for (int i = 0; i < 10; i++) {
+				for (int i = 0; i < 50; i++) {
 					sortedSet.add("A" + i);
 					System.out.print("  A" + i);
 				}
@@ -34,13 +34,43 @@ public class SyncTest extends BaseTest {
 			@Override
 			public void run() {
 				// synchronized (sortedSet) {
-				for (int i = 0; i < 10; i++) {
+				for (int i = 0; i < 50; i++) {
 					sortedSet.add("B" + i);
 					System.out.print("  B" + i);
 				}
 				// System.out.println(sortedSet);
 			}
 			// }
+		}).start();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// synchronized (sortedSet) {
+				for (int i = 0; i < 10; i++) {
+					sortedSet.add("C" + i);
+					System.out.print("  C" + i);
+				}
+				// System.out.println(sortedSet);
+			}
+			// }
+		}).start();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// synchronized (sortedSet) {
+				System.out.println();
+				System.out.println(sortedSet);
+				Iterator<String> iter = sortedSet.iterator();
+				while (iter.hasNext()) {
+					String item = iter.next();
+					if (item.endsWith("2")) {
+						iter.remove();
+					}
+				}
+				System.out.println();
+				System.out.println(sortedSet);
+				// }
+			}
 		}).start();
 	}
 

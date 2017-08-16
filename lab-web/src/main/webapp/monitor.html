@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html class="no-js" lang="">
+
+<head>
+<meta charset="utf-8">
+<title>FES Monitor</title>
+<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="css/monitor.css">
+</head>
+
+<body>
+	<nav class="navbar navbar-default">
+		<div class="container-fluid">
+			<!-- Collect the nav links, forms, and other content for toggling -->
+			<div class="collapse navbar-collapse"
+				id="bs-example-navbar-collapse-1">
+				<ul class="nav navbar-nav">
+					<li class="active"><a href="#fes" data-toggle="tab">FES</a></li>
+					<li><a href="#home" data-toggle="tab">分片器 | SEGMENTER</a></li>
+					<li><a href="#profile" data-toggle="tab">调度器 | SCHEDULER</a></li>
+					<li><a href="#messages" data-toggle="tab">NGINX | SW-HLS</a></li>
+					<li><a href="#settings" data-toggle="tab">服务器 | SW-SERVER</a></li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<!-- <li><a href="#">Link</a></li> -->
+				</ul>
+			</div>
+		</div>
+	</nav>
+
+	<!-- Tab panes -->
+	<div class="tab-content">
+		<div role="tabpanel" class="tab-pane active" id="fes">
+			<div class="col-md-2 col-sm-12">
+				<div class="list-group">
+					<a href="#" class="list-group-item active">
+						<h4 class="list-group-item-heading">分片器 | SEGMENTER</h4>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">状态</span>
+						<span id="fesSegmenterStatus" class="label label-default"></span>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">版本</span>
+						<span id="fesSegmenterVersion" class="label label-default"></span>
+					</a>
+				</div>
+				<div class="list-group">
+					<a href="#" class="list-group-item active">
+						<h4 class="list-group-item-heading">调度器 | SCHEDULER</h4>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">状态</span>
+						<span id="fesSchedulerStatus" class="label label-default"></span>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">版本</span>
+						<span id="fesSchedulerVersion" class="label label-default"></span>
+					</a>
+				</div>
+				<div class="list-group">
+					<a href="#" class="list-group-item active">
+						<h4 class="list-group-item-heading">NGINX | SW-HLS</h4>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">状态</h4>
+						<span id="fesSwhlsStatus" class="label label-default"></span>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">版本</span>
+						<span id="fesSwhlsVersion" class="label label-default"></span>
+					</a>
+				</div>
+				<div class="list-group">
+					<a href="#" class="list-group-item active">
+						<h4 class="list-group-item-heading">服务器 | SW-SERVER</h4>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">状态</span>
+						<span id="fesSwserverStatus" class="label label-default"></span>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">版本</span>
+						<span id="fesSwserverVersion" class="label label-default"></span>
+					</a>
+				</div>
+			</div>
+			<div class="col-md-10 col-sm-12">
+				<table id="fesTable"
+					class="table table-striped table-hover table-responsive">
+					<caption><h4>FES</h4></caption>
+					<thead>
+						<tr>
+							<th width="16%">节目序号 | PROGRAM_NUMBER</th>
+							<th width="18%">PID | STREAM_PID</th>
+							<th width="22%">分片器 | SEGMENTER</th>
+							<th width="22%">调度器 | SCHEDULER</th>
+							<th width="22%">NGINX | SW-HLS</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div role="tabpanel" class="tab-pane" id="home">
+			<div class="col-md-2 col-sm-12">
+				<div class="list-group">
+					<a href="#" class="list-group-item active">
+						<h4 class="list-group-item-heading">分片器 | SEGMENTER</h4>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">状态</span>
+						<span id="segmenterStatus" class="label label-default"></span>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">版本</span>
+						<span id="segmenterVersion" class="label label-default"></span>
+					</a>
+				</div>
+			</div>
+			<div class="col-md-10 col-sm-12">
+				<table id="segmenterTable"
+					class="table table-striped table-hover table-responsive">
+					<caption><h4>分片器 | SEGMENTER</h4></caption>
+					<thead>
+						<tr>
+							<th width="20%">节目序号 | PROGRAM_NUMBER</th>
+							<th width="20%">PID | STREAM_PID</th>
+							<th width="30%">当前序号 | CURRENT_SEQ</th>
+							<th width="30%">最后序号 | LAST_SEQ</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div role="tabpanel" class="tab-pane fade" id="profile">
+			<div class="col-md-2 col-sm-12">
+				<div class="list-group">
+					<a href="#" class="list-group-item active">
+						<h4 class="list-group-item-heading">调度器 | SCHEDULER</h4>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">状态</span>
+						<span id="schedulerStatus" class="label label-default"></span>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">版本</span>
+						<span id="schedulerVersion" class="label label-default"></span>
+					</a>
+				</div>
+			</div>
+			<div class="col-md-10 col-sm-12">
+				<table id="schedulerTable"
+					class="table table-striped table-hover table-responsive">
+					<caption><h4>调度器 | SCHEDULER</h4></caption>
+					<thead>
+						<tr>
+							<th width="20%">节目序号 | PROGRAM_NUMBER</th>
+							<th width="20%">PID | STREAM_PID</th>
+							<th width="30%">当前序号 | CURRENT_SEQ</th>
+							<th width="30%">最后序号 | LAST_SEQ</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div role="tabpanel" class="tab-pane fade" id="messages">
+			<div class="col-md-2 col-sm-12">
+				<div class="list-group">
+					<a href="#" class="list-group-item active">
+						<h4 class="list-group-item-heading">NGINX | SW-HLS</h4>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">状态</h4>
+						<span id="swhlsStatus" class="label label-default"></span>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">版本</span>
+						<span id="swhlsVersion" class="label label-default"></span>
+					</a>
+				</div>
+			</div>
+			<div class="col-md-10 col-sm-12">
+				<table id="swhlsTable"
+					class="table table-striped table-hover table-responsive">
+					<caption><h4>NGINX | SW-HLS</h4></caption>
+					<thead>
+						<tr>
+							<th width="20%">节目序号 | PROGRAM_NUMBER</th>
+							<th width="20%">PID | STREAM_PID</th>
+							<th width="30%">当前序号 | CURRENT_SEQ</th>
+							<th width="30%">最后序号 | LAST_SEQ</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div role="tabpanel" class="tab-pane fade" id="settings">
+			<div class="col-md-12 col-sm-12">
+				<div class="list-group">
+					<a href="#" class="list-group-item active">
+						<h4 class="list-group-item-heading">服务器 | SW-SERVER</h4>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">状态</span>
+						<span id="swserverStatus" class="label label-default"></span>
+					</a>
+					<a href="#" class="list-group-item">
+						<span class="list-group-item-text">版本</span>
+						<span id="swserverVersion" class="label label-default"></span>
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="js/jquery-3.1.1.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/monitor.js"></script>
+</body>
+
+</html>

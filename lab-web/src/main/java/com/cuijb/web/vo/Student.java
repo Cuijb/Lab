@@ -9,4 +9,10 @@ public class Student {
 	private String name;
 	private String sex;
 	private int age;
+
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return name + "-" + age;
+	}
 }
