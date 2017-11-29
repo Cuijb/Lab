@@ -1,10 +1,14 @@
 package com.cuijb.web.test;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.junit.Test;
@@ -16,7 +20,7 @@ public class GZipTest extends BaseTest {
 
 	@Test
 	public void toGzip() {
-		File logDir = new File("D:\\Downloads\\7046");
+		File logDir = new File("E:\\apk\\develop\\gzip");
 		if (!logDir.exists()) {
 			log.error("to gzip failed, log dir is not exists");
 			return;
@@ -57,6 +61,78 @@ public class GZipTest extends BaseTest {
 						}
 					}
 				}
+			}
+		}
+	}
+
+	@Test
+	public void fromGzip() {
+		File logDir = new File("E:\\apk\\develop\\gzip\\1K");
+		if (!logDir.exists()) {
+			log.error("from gzip failed, log dir is not exists");
+			return;
+		}
+		if (logDir.isFile()) {
+			log.error("from gzip failed, log dir is file?!");
+			return;
+		}
+		if (logDir.isDirectory()) {
+			File[] logFiles = logDir.listFiles();
+			if (null == logFiles || logFiles.length < 1) {
+				log.info("from gzip failed, log dir is empty");
+				return;
+			}
+			// 1、文件压缩
+			for (File file : logFiles) {
+				if (file.isFile()) {
+					if (file.getName().endsWith(".gz")) {
+						unpackGzip(file.getPath(), file.getPath().replace(".gz", ""));
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Gzip 解压
+	 *
+	 * @param gzipFilePath
+	 * @param saveFilePath
+	 * @return
+	 */
+	private void unpackGzip(String gzipFilePath, String saveFilePath) {
+		InputStream is;
+		GZIPInputStream gzipInputStream = null;
+		OutputStream outputStream = null;
+		File fileZip = null;
+		try {
+			fileZip = new File(gzipFilePath);
+			is = new FileInputStream(fileZip);
+			gzipInputStream = new GZIPInputStream(new BufferedInputStream(is), (int) fileZip.length());
+			outputStream = new FileOutputStream(saveFilePath);
+			byte[] buffer = new byte[1024];
+			int readLen = 0;
+			while ((readLen = gzipInputStream.read(buffer, 0, 1024)) != -1) {
+				outputStream.write(buffer, 0, readLen);
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			log.error("unpackGzip FileNotFoundException:" + e);
+		} catch (IOException e) {
+			e.printStackTrace();
+			log.error("unpackGzip IOException:" + e);
+		} catch (Exception e) {
+			log.error("unpackGzip Exception:" + e);
+		} finally {
+			try {
+				if (gzipInputStream != null) {
+					gzipInputStream.close();
+				}
+				if (outputStream != null) {
+					outputStream.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}
