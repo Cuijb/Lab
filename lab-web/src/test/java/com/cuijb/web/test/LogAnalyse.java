@@ -179,15 +179,15 @@ public class LogAnalyse {
 	private static void showResult(Date startTime, Date endTime, Date playTime, long bcr, long dld, long unNeedDld,
 			long miss, boolean restart, Date restartTime) {
 		// 开机时间、关机时间、播放终止时间、BC接收、4G下载、无效下载、丢包、补包率、无效补包率、有效补包率、丢包率、异常
+		Object errMsg = restart ? DF_SHOW.format(restartTime) + " 频道重启" : "";
 		if (dld == 0) {
 			log.info(RESULT_FMT, DF_SHOW.format(startTime), DF_SHOW.format(endTime), DF_SHOW.format(playTime), bcr, dld,
-					unNeedDld, miss, 0, 0, 0, 0, restart ? DF_SHOW.format(restartTime) + " 频道重启" : "无");
+					unNeedDld, miss, 0, 0, 0, 0, errMsg);
 		} else {
 			log.info(RESULT_FMT, DF_SHOW.format(startTime), DF_SHOW.format(endTime), DF_SHOW.format(playTime), bcr, dld,
 					unNeedDld, miss, DF_PERCENT.format(100.0 * dld / (bcr + dld)),
 					DF_PERCENT.format(100.0 * unNeedDld / dld), DF_PERCENT.format(100.0 * (dld - unNeedDld) / dld),
-					DF_PERCENT.format(100.0 * miss / (bcr + dld - unNeedDld + miss)),
-					restart ? DF_SHOW.format(restartTime) + " 频道重启" : "无");
+					DF_PERCENT.format(100.0 * miss / (bcr + dld - unNeedDld + miss)), errMsg);
 		}
 	}
 
