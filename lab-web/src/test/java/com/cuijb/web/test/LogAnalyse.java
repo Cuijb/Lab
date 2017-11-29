@@ -113,7 +113,6 @@ public class LogAnalyse {
 					}
 
 					initParams();
-					log.info("datetime str {}", matcherMBox.group(1));
 					updatePlayTime(matcherMBox.group(1));
 				}
 
