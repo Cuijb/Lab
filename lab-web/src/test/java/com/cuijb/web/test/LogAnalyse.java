@@ -30,10 +30,10 @@ public class LogAnalyse {
 	private static final Pattern PATTERN_RESTART = Pattern.compile(REG_TIME + "will restart");
 	private static final DateFormat DF_LOG = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 	private static final DateFormat DF_SHOW = new SimpleDateFormat("MM-dd HH:mm");
-	private static final NumberFormat DF_PERCENT = new DecimalFormat("#.##");
+	private static final NumberFormat NF_PERCENT = new DecimalFormat("#.##");
 
-	// 开机时间 、关机时间、播放终止时间、BC接收、4G下载、无效下载、丢包、补包率、无效补包率、有效补包率、丢包率、异常
-	private static final String RESULT_FMT = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}";
+	// 开机时间 、关机时间、播放终止时间、有效时长、BC接收、4G下载、无效下载、丢包、补包率、无效补包率、有效补包率、丢包率、异常
+	private static final String RESULT_FMT = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}";
 
 	private Date startTime = null;
 	private Date playTime = null;
@@ -64,8 +64,8 @@ public class LogAnalyse {
 		}
 		initParams();
 		log.info("Analysed {} start", logFile.getName());
-		log.info(RESULT_FMT, "开机时间", "关机时间", "播放终止时间", "BC接收", "4G下载", "无效下载", "丢包", "补包率", "无效补包率", "有效补包率", "丢包率",
-				"异常");
+		log.info(RESULT_FMT, "开机时间", "关机时间", "播放终止时间", "有效时长(h)", "BC接收", "4G下载", "无效下载", "丢包", "补包率(%)", "无效补包率(%)",
+				"有效补包率(%)", "丢包率(%)", "异常");
 		BufferedReader br = null;
 		try {
 			br = new BufferedReader(new FileReader(logFile));// 构造一个BufferedReader类来读取文件
@@ -146,17 +146,14 @@ public class LogAnalyse {
 
 	private void showResult(Date startTime, Date endTime, Date playTime, long bcr, long dld, long unNeedDld, long miss,
 			boolean restart, Date restartTime) {
-		// 开机时间、关机时间、播放终止时间、BC接收、4G下载、无效下载、丢包、补包率、无效补包率、有效补包率、丢包率、异常
+		// 开机时间、关机时间、播放终止时间、有效时长、BC接收、4G下载、无效下载、丢包、补包率、无效补包率、有效补包率、丢包率、异常
 		Object errMsg = restart ? DF_SHOW.format(restartTime) + " 频道重启" : "";
-		if (dld == 0) {
-			log.info(RESULT_FMT, DF_SHOW.format(startTime), DF_SHOW.format(endTime), DF_SHOW.format(playTime), bcr, dld,
-					unNeedDld, miss, 0, 0, 0, 0, errMsg);
-		} else {
-			log.info(RESULT_FMT, DF_SHOW.format(startTime), DF_SHOW.format(endTime), DF_SHOW.format(playTime), bcr, dld,
-					unNeedDld, miss, DF_PERCENT.format(100.0 * dld / (bcr + dld)),
-					DF_PERCENT.format(100.0 * unNeedDld / dld), DF_PERCENT.format(100.0 * (dld - unNeedDld) / dld),
-					DF_PERCENT.format(100.0 * miss / (bcr + dld - unNeedDld + miss)), errMsg);
-		}
+		log.info(RESULT_FMT, DF_SHOW.format(startTime), DF_SHOW.format(endTime), DF_SHOW.format(playTime),
+				NF_PERCENT.format((playTime.getTime() - startTime.getTime()) / 1000.0 / 60 / 60), bcr, dld, unNeedDld,
+				miss, (dld == 0 ? 0 : NF_PERCENT.format(100.0 * dld / (bcr + dld))),
+				(dld == 0 ? 0 : NF_PERCENT.format(100.0 * unNeedDld / (bcr + dld))),
+				(dld == 0 ? 0 : NF_PERCENT.format(100.0 * (dld - unNeedDld) / (bcr + dld))),
+				(miss == 0 ? 0 : NF_PERCENT.format(100.0 * miss / (bcr + dld - unNeedDld + miss))), errMsg);
 	}
 
 	@Test
