@@ -9,7 +9,9 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,8 +44,7 @@ public class LogAnalyse {
 	private long dld = 0;
 	private long unNeedDld = 0;
 	private long miss = 0;
-	private boolean restart = false;
-	private Date restartTime = null;
+	private List<String> errMsgs = new ArrayList<>();
 
 	private void initParams() {
 		startTime = null;
@@ -53,8 +54,7 @@ public class LogAnalyse {
 		dld = 0;
 		unNeedDld = 0;
 		miss = 0;
-		restart = false;
-		restartTime = null;
+		errMsgs.clear();
 	}
 
 	private void logAnalyse(File logFile) {
@@ -62,8 +62,12 @@ public class LogAnalyse {
 			log.warn("{} is not exist!", logFile.getName());
 			return;
 		}
+		if (!logFile.getName().endsWith(".log")) {
+			log.warn("{} has no suffix .log", logFile.getName());
+			return;
+		}
 		initParams();
-		log.info("Analysed {} start", logFile.getName());
+		log.info("Analyse {} start", logFile.getName());
 		log.info(RESULT_FMT, "开机时间", "关机时间", "播放终止时间", "有效时长(h)", "BC接收", "4G下载", "无效下载", "丢包", "补包率(%)", "无效补包率(%)",
 				"有效补包率(%)", "丢包率(%)", "异常");
 		BufferedReader br = null;
@@ -102,14 +106,13 @@ public class LogAnalyse {
 
 				Matcher matcherRestart = PATTERN_RESTART.matcher(s);
 				if (matcherRestart.find()) {
-					restart = true;
-					restartTime = DF_LOG.parse(matcherRestart.group(1));
+					errMsgs.add(DF_SHOW.format(DF_LOG.parse(matcherRestart.group(1))) + " 频道重启");
 				}
 
 				Matcher matcherMBox = PATTERN_MBOX.matcher(s);
 				if (matcherMBox.find()) {
 					if (null != startTime && null != playTime) {
-						showResult(startTime, endTime, playTime, bcr, dld, unNeedDld, miss, restart, restartTime);
+						showResult(startTime, endTime, playTime, bcr, dld, unNeedDld, miss, errMsgs);
 					}
 
 					initParams();
@@ -122,8 +125,8 @@ public class LogAnalyse {
 					endTime = DF_LOG.parse(dateTimeStr);
 				}
 			}
-			showResult(startTime, endTime, playTime, bcr, dld, unNeedDld, miss, restart, restartTime);
-			log.info("Analysed {} end{}", logFile.getName(), System.lineSeparator());
+			showResult(startTime, endTime, playTime, bcr, dld, unNeedDld, miss, errMsgs);
+			log.info("Analyse {} end{}", logFile.getName(), System.lineSeparator());
 		} catch (Exception e) {
 			log.error("analyse {} has exception: {}", logFile.getName(), e);
 		} finally {
@@ -145,37 +148,36 @@ public class LogAnalyse {
 	}
 
 	private void showResult(Date startTime, Date endTime, Date playTime, long bcr, long dld, long unNeedDld, long miss,
-			boolean restart, Date restartTime) {
+			List<String> errMsgs) {
 		// 开机时间、关机时间、播放终止时间、有效时长、BC接收、4G下载、无效下载、丢包、补包率、无效补包率、有效补包率、丢包率、异常
-		Object errMsg = restart ? DF_SHOW.format(restartTime) + " 频道重启" : "";
+		String errMsgStr = "";
+		for (String errMsg : errMsgs) {
+			errMsgStr += errMsg + "; ";
+		}
 		log.info(RESULT_FMT, DF_SHOW.format(startTime), DF_SHOW.format(endTime), DF_SHOW.format(playTime),
 				NF_PERCENT.format((playTime.getTime() - startTime.getTime()) / 1000.0 / 60 / 60), bcr, dld, unNeedDld,
 				miss, (dld == 0 ? 0 : NF_PERCENT.format(100.0 * dld / (bcr + dld))),
 				(dld == 0 ? 0 : NF_PERCENT.format(100.0 * unNeedDld / (bcr + dld))),
 				(dld == 0 ? 0 : NF_PERCENT.format(100.0 * (dld - unNeedDld) / (bcr + dld))),
-				(miss == 0 ? 0 : NF_PERCENT.format(100.0 * miss / (bcr + dld - unNeedDld + miss))), errMsg);
+				(miss == 0 ? 0 : NF_PERCENT.format(100.0 * miss / (bcr + dld - unNeedDld + miss))), errMsgStr);
 	}
 
 	@Test
 	public void test() {
-		File logDir = new File("D:\\Downloads");
+		File logDir = new File("D:\\Downloads\\定点-1201~04-868770001666378.log");
 		if (!logDir.exists()) {
 			log.error("log dir({}) is not exists", logDir.getPath());
 			return;
 		}
 		if (logDir.isFile()) {
-			log.error("log dir({}) is file?!", logDir.getPath());
+			logAnalyse(logDir);
 			return;
 		}
 		if (logDir.isDirectory()) {
 			for (File file : logDir.listFiles()) {
-				if (file.getName().endsWith(".log")) {
-					logAnalyse(file);
-				} else {
-					log.warn("{} has no suffix .log", file.getName());
-				}
+				logAnalyse(file);
 			}
-			log.info("Analysed log file(s) end");
+			log.info("Analyse log file(s) end");
 		}
 	}
 }
