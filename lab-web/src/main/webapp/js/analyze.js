@@ -1,22 +1,45 @@
 $(document).ready(function() {
-	var REG_TIME = "([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}).*?\\[(DEBUG|INFO|WARN|ERROR)\\]";
-	var REG_CHANNEL = "( .*\\] | \\d+ )"
+	var REG_TIME = "([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}).*\\[(DEBUG|INFO|WARN|ERROR)\\] ";
+	var REG_CHANNEL = "(.*\\]|\\d+)"
 	var PATTERN_TIME_P = new RegExp("([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})\\.([0-9]{3})");
 	var PATTERN_TIME = new RegExp(REG_TIME);
-	var PATTERN_MBOX = new RegExp(REG_TIME + " MBox ROM Version is: (.*)");
+	var PATTERN_MBOX = new RegExp(REG_TIME + "MBox ROM Version is: (.*)");
+	var PATTERN_CSSERVER = new RegExp(REG_TIME + "CSServer version is: (.*)");
+	var PATTERN_NETWORK = new RegExp(REG_TIME + "Network type: (\\d+)");
+	var PATTERN_BROADCAST = new RegExp(REG_TIME + "Satellite status: (\\d+)");
+	var PATTERN_LDPC = new RegExp(REG_TIME + "LDPC status: (\\d+) / (\\d+)");
 	var PATTERN_CHANNEL = new RegExp(REG_TIME + REG_CHANNEL);
-	var PATTERN_PUBLISH_COST = new RegExp(REG_TIME + REG_CHANNEL + "first publish m3u8 used time: (.*)ms");
-	var PATTERN_BC_NUM = new RegExp(REG_TIME + REG_CHANNEL + "bcRecvNumber increase ([0-9]+)");
-	var PATTERN_BC_BYTES = new RegExp(REG_TIME + REG_CHANNEL + "bcRecvBytes increase ([0-9]+)");
-	var PATTERN_DLD_NUM = new RegExp(REG_TIME + REG_CHANNEL + "httpDownloadNumber increase ([0-9]+)");
-	var PATTERN_DLD_BYTES = new RegExp(REG_TIME + REG_CHANNEL + "httpRecvBytes increase ([0-9]+)");
-	var PATTERN_UNNEED_D = new RegExp(REG_TIME + REG_CHANNEL + "notNeedHttpDownload increase ([0-9]+)");
-	var PATTERN_PLAY_LIST = new RegExp(REG_TIME + REG_CHANNEL + "play list is");
-	var PATTERN_PLAY_MISS = new RegExp(REG_TIME + REG_CHANNEL + "missNumber increase ([0-9]+)");
-	var PATTERN_RESTART = new RegExp(REG_TIME + REG_CHANNEL + "will restart");
+	var PATTERN_CHANNEL_START = new RegExp(REG_TIME + REG_CHANNEL + " will start");
+	var PATTERN_PUBLISH_COST = new RegExp(REG_TIME + REG_CHANNEL + " first publish m3u8 used time: (.*)ms");
+	var PATTERN_BC_NUM = new RegExp(REG_TIME + REG_CHANNEL + " bcRecvNumber increase ([0-9]+)");
+	var PATTERN_BC_BYTES = new RegExp(REG_TIME + REG_CHANNEL + " bcRecvBytes increase ([0-9]+)");
+	var PATTERN_DLD_NUM = new RegExp(REG_TIME + REG_CHANNEL + " httpDownloadNumber increase ([0-9]+)");
+	var PATTERN_DLD_BYTES = new RegExp(REG_TIME + REG_CHANNEL + " httpRecvBytes increase ([0-9]+)");
+	var PATTERN_UNNEED_D = new RegExp(REG_TIME + REG_CHANNEL + " notNeedHttpDownload increase ([0-9]+)");
+	var PATTERN_PLAY_LIST = new RegExp(REG_TIME + REG_CHANNEL + " play list is");
+	var PATTERN_PLAY_MISS = new RegExp(REG_TIME + REG_CHANNEL + " missNumber increase ([0-9]+)");
+	var PATTERN_NOT_NEED = new RegExp(REG_TIME + REG_CHANNEL + " from (BC|4G) (not needed|duplicate) seq:(\\d+)");
+	var PATTERN_CHANNEL_RESTART = new RegExp(REG_TIME + REG_CHANNEL + " will restart");
+	var PATTERN_CHANNEL_STOP = new RegExp(REG_TIME + REG_CHANNEL + " will stop");
 	var DF_TIME = "yyyy-MM-dd HH24:mm:ss.SSS";
-	var DF_SHOW = "MM-dd HH:mm";
+	var DF_SHOW = "MM-dd HH:mm:ss";
 	var NF_PERCENT = "#.##";
+	var $fileProgress = $("#fileProgress");
+	var $liveTable = $("#liveTable tbody");
+	var $sysTable = $("#systemTable tbody");
+	var $bcTable = $("#bcTable tbody");
+	var $netTable = $("#netTable tbody");
+	var $ldpcTable = $("#ldpcTable tbody");
+	var $logList = $("ul#logList");
+	var NetStatus = {
+		"0" : "无网",
+		"1" : "网络断开",
+		"2" : "以太网",
+		"3" : "WiFi",
+		"4" : "2G",
+		"5" : "3G",
+		"6" : "4G",
+	};
 	Date.prototype.format = function (fmt) {
 		if (!fmt) {
 			fmt = DF_SHOW;
@@ -42,7 +65,25 @@ $(document).ready(function() {
 	    return fmt;
 	}
 
-	var parseDate = function(timeStr) {
+    var showTime = function(duration) {
+        duration = parseInt(duration / 1000);
+        if (duration <= 0) {
+            return "0\""
+        }
+        var seconds = 0, minutes = 0, hours = 0;
+        seconds = duration % 60;
+        if (duration >= 60) {
+            duration = parseInt(duration / 60);
+
+            var minutes = duration % 60;
+            if (duration >= 60) {
+                hours = parseInt(duration / 60);
+            }
+        }
+        return (!!hours ? (hours + ":") : "") + (!!minutes ? (minutes + "'") : "") + (seconds + "\"");
+    };
+
+    var parseDate = function(timeStr) {
 		var mct = timeStr.match(PATTERN_TIME_P);
 		if (mct) {
 			return new Date(mct[1], parseInt(mct[2]) - 1, mct[3], mct[4], mct[5], mct[6]);
@@ -53,6 +94,12 @@ $(document).ready(function() {
 	function Counter() {
 		this.startTime = null;
 		this.endTime = null;
+		this.netST = null;
+		this.netVal = null;
+		this.bcST = null;
+		this.bcVal = null;
+		this.ldpcST = null;
+		this.ldpcVal = null;
 		this.publishCost = null;
 		this.bcN = 0;
 		this.bcB = 0;
@@ -61,29 +108,91 @@ $(document).ready(function() {
 		this.unNeedDld = 0;
 		this.miss = 0;
 		this.errMsgs = [];
+		this.reset = function(){
+			if (!!this.endTime) {
+				if (!!this.netST) {
+					appendNetInfo(this.netST, this.endTime, this.netVal);
+				}
+				if (!!this.bcST) {
+					appendBcInfo(this.bcST, this.endTime, 1 == parseInt(this.bcVal) ? "锁定" : "失锁");
+				}
+				if (!!this.ldpcST) {
+					appendLdpcInfo(this.ldpcST, this.endTime, this.ldpcVal);
+				}
+			}
+			this.startTime = null;
+			this.endTime = null;
+			this.netST = null;
+			this.netVal = null;
+			this.bcST = null;
+			this.bcVal = null;
+			this.ldpcST = null;
+			this.ldpcVal = null;
+			this.publishCost = null;
+			this.bcN = 0;
+			this.bcB = 0;
+			this.dldN = 0;
+			this.dldB = 0;
+			this.unNeedDld = 0;
+			this.miss = 0;
+			this.errMsgs = [];
+		};
 		this.updatePT = function(timeStr) {
-			var tempD = parseDate(timeStr);
-			if (tempD) {
-				this.endTime = tempD;
-				if (!this.startTime) {
-					this.startTime = this.endTime;
+			this.endTime = timeStr;
+			if (!this.startTime) {
+				this.startTime = this.endTime;
+			}
+		};
+		this.updateNT = function(timeStr, value) {
+			if (!this.netST) {
+				this.netST = timeStr;
+				this.netVal = value;
+			} else {
+				if (parseInt(this.netVal) != parseInt(value)) {
+					appendNetInfo(this.netST, timeStr, this.netVal);
+					this.netST = timeStr;
+					this.netVal = value;
+				}
+			}
+		};
+		this.updateBT = function(timeStr, value) {
+			if (!this.bcST) {
+				this.bcST = timeStr;
+				this.bcVal = value;
+			} else {
+				if (parseInt(this.bcVal) != parseInt(value)) {
+					appendBcInfo(this.bcST, timeStr, 1 == parseInt(this.bcVal) ? "锁定" : "失锁");
+					this.bcST = timeStr;
+					this.bcVal = value;
+				}
+			}
+		};
+		this.updateLDPCT = function(timeStr, value) {
+			if (!this.ldpcST) {
+				this.ldpcST = timeStr;
+				this.ldpcVal = value;
+			} else {
+				if (parseInt(this.ldpcVal) != parseInt(value)) {
+					appendLdpcInfo(this.ldpcST, timeStr, this.ldpcVal);
+					this.ldpcST = timeStr;
+					this.ldpcVal = value;
 				}
 			}
 		};
 		this.isEmpty = function(){
 			return this.bcN <= 0 && this.dldN <= 0;
 		};
-		this.getST = function(){
+		this.getSET = function(){
 			if (!this.startTime) {
 				return "unknown";
 			}
-			return this.startTime.format();
-		};
-		this.getET = function(){
 			if (!this.endTime) {
 				return "unknown";
 			}
-			return this.endTime.format();
+
+			var startStr = parseDate(this.startTime).format();
+			var endStr = parseDate(this.endTime).format().replace(startStr.substring(0, 6), "");
+			return startStr + " ~ " + endStr
 		};
 		this.getPT = function(){
 			if (!this.startTime) {
@@ -92,7 +201,7 @@ $(document).ready(function() {
 			if (!this.endTime) {
 				return "unknown";
 			}
-			return ((this.endTime.getTime() - this.startTime.getTime()) / 1000.0 / 60 / 60).toFixed(2);
+			return showTime(parseDate(this.endTime).getTime() - parseDate(this.startTime).getTime());
 		};
 		this.getPC = function(){
 			if (!this.publishCost) {
@@ -130,21 +239,7 @@ $(document).ready(function() {
 			}
 			return (100.0 * this.miss / (this.bcN + this.dldN - this.unNeedDld + this.miss)).toFixed(2);
 		};
-		this.reset = function(){
-			this.startTime = null;
-			this.endTime = null;
-			this.bcN = 0;
-			this.bcB = 0;
-			this.dldN = 0;
-			this.dldB = 0;
-			this.unNeedDld = 0;
-			this.miss = 0;
-			this.errMsgs = [];
-		};
 	};
-	var $fileProgress = $("#fileProgress");
-	var $liveTable = $("#liveTable tbody");
-	var $logList = $("ul#logList");
 	var step = 1024 * 1024; // 每次读取1M
 	var result = "";
 	var loaded = 0;
@@ -190,14 +285,52 @@ $(document).ready(function() {
 	} else {
 		console.log("FileReader not supported by your browser!");
 	}
+	var appendSystemInfo = function(time, desc, value) {
+		$sysTable.append($("<tr>")
+				.append($("<td>").text(parseDate(time).format()))
+				.append($("<td>").text(desc))
+				.append($("<td>").text(value)));
+	};
+	var appendNetInfo = function(start, end, value) {
+		var sd = parseDate(start);
+		var ed = parseDate(end);
+		var startStr = sd.format();
+		var endStr = ed.format().replace(startStr.substring(0, 6), "");
+		$netTable.append($("<tr>")
+				.append($("<td>").text(startStr + " ~ " + endStr))
+				.append($("<td>").text(showTime(ed.getTime() - sd.getTime())))
+				.append($("<td>").text(value + " -- " + NetStatus[value])));
+	};
+	var appendBcInfo = function(start, end, value) {
+		var sd = parseDate(start);
+		var ed = parseDate(end);
+		var startStr = sd.format();
+		var endStr = ed.format().replace(startStr.substring(0, 6), "");
+		$bcTable.append($("<tr>")
+				.append($("<td>").text(startStr + " ~ " + endStr))
+				.append($("<td>").text(showTime(ed.getTime() - sd.getTime())))
+				.append($("<td>").text(value)));
+	};
+	var appendLdpcInfo = function(start, end, value) {
+		var sd = parseDate(start);
+		var ed = parseDate(end);
+		var startStr = sd.format();
+		var endStr = ed.format().replace(startStr.substring(0, 6), "");
+		$ldpcTable.append($("<tr>")
+				.append($("<td>").text(startStr + " ~ " + endStr))
+				.append($("<td>").text(showTime(ed.getTime() - sd.getTime())))
+				.append($("<td>").text(value)));
+	};
+	var appendLogList = function(index, line) {
+		$logList.append($("<li>").addClass("list-group-item").text(index + " - " + line));
+	};
 	var appendResult = function(desc, count) {
     	if (count.isEmpty()) {
     		return;
     	}
         $liveTable.append($("<tr>").addClass("ALL" == desc ? "info" : "success")
 			.append($("<td>").text("ALL" == desc ? "总计" : desc))
-			.append($("<td>").text(count.getST()))
-			.append($("<td>").text(count.getET()))
+			.append($("<td>").text(count.getSET()))
 			.append($("<td>").text(count.getPT()))
 			.append($("<td>").text(count.getPC()))
 			.append($("<td>").text(count.bcN))
@@ -213,31 +346,55 @@ $(document).ready(function() {
 			.append($("<td>").text(count.getMP())));
     };
     var showResult = function() {
-		var errMsgStr = "";
-		$.each(count.errMsgs, function(index, errMsg){
-			errMsgStr += errMsg + "; ";
-		});
-		appendResult("ALL", count);
 		$.each(channel, function(channel, count){
 			appendResult(channel, count);
 		});
+		appendResult("ALL", count);
+		if ($liveTable.children().length) {
+			$liveTable.append($("<tr>"));
+		}
 	};
 	var logAnalyze = function(lines) {
 		$liveTable.empty();
+		$sysTable.empty();
+		$netTable.empty();
+		$bcTable.empty();
+		$ldpcTable.empty();
         $logList.empty();
         for (var index in lines) {
         	var line = lines[index];
 			var mcMBox = line.match(PATTERN_MBOX);
 			if (mcMBox) {
 				showResult();
-		        channel = {};
 	            count.reset();
+		        channel = {};
 				count.updatePT(mcMBox[1]);
+				appendSystemInfo(mcMBox[1], "MBox ROM", mcMBox[3]);
 			}
 
 			var mcTime = line.match(PATTERN_TIME);
 			if (mcTime) {
 				count.updatePT(mcTime[1]);
+			}
+
+			var mcCSS = line.match(PATTERN_CSSERVER);
+			if (mcCSS) {
+				appendSystemInfo(mcCSS[1], "CSServer", mcCSS[3]);
+			}
+
+			var mcNW = line.match(PATTERN_NETWORK);
+			if (mcNW) {
+				count.updateNT(mcNW[1], mcNW[3]);
+			}
+
+			var mcBC = line.match(PATTERN_BROADCAST);
+			if (mcBC) {
+				count.updateBT(mcBC[1], mcBC[3]);
+			}
+
+			var mcLDPC = line.match(PATTERN_LDPC);
+			if (mcLDPC) {
+				count.updateLDPCT(mcLDPC[1], mcLDPC[4]);
 			}
 
 			var mcChannel = line.match(PATTERN_CHANNEL);
@@ -249,8 +406,16 @@ $(document).ready(function() {
 				channel[mcChannel[3]].updatePT(mcChannel[1]);
 			}
 
+			var mcCS = line.match(PATTERN_CHANNEL_START);
+			if (mcCS) {
+				appendResult(mcCS[3], channel[mcCS[3]]);
+				channel[mcCS[3]].reset();
+				channel[mcCS[3]].updatePT(mcCS[1]);
+			}
+
 			var mcPublish = line.match(PATTERN_PUBLISH_COST);
 			if (mcPublish) {
+				channel[mcPublish[3]].updatePT(mcPublish[1]);
 				channel[mcPublish[3]].publishCost = parseInt(mcPublish[4]);
 			}
 
@@ -286,6 +451,11 @@ $(document).ready(function() {
 				channel[mcDLDB[3]].dldB += parseInt(mcDLDB[4]);
 			}
 
+			var mcNN = line.match(PATTERN_NOT_NEED);
+			if (mcNN) {
+				appendLogList(index, line);
+			}
+
 			var mcUnNeed = line.match(PATTERN_UNNEED_D);
 			if (mcUnNeed) {
 				count.updatePT(mcUnNeed[1]);
@@ -308,12 +478,24 @@ $(document).ready(function() {
 				channel[mcMiss[3]].miss += parseInt(mcMiss[4]);
 			}
 
-			var mcRestart = line.match(PATTERN_RESTART);
-			if (mcRestart) {
-				channel[mcRestart[3]].errMsgs.push(parseDate(mcRestart[1]).format() + " 频道重启");
+			var mcCR = line.match(PATTERN_CHANNEL_RESTART);
+			if (mcCR) {
+				channel[mcCR[3]].updatePT(mcCR[1]);
+				channel[mcCR[3]].errMsgs.push(parseDate(mcCR[1]).format() + " 频道重启");
+				appendSystemInfo(mcCR[1], "重启", mcCR[3]);
+			}
+
+			var mcCT = line.match(PATTERN_CHANNEL_STOP);
+			if (mcCT) {
+				channel[mcCT[3]].updatePT(mcCT[1]);
+				appendResult(mcCT[3], channel[mcCT[3]]);
+				channel[mcCT[3]].reset();
 			}
 		}
 		showResult();
+		count.reset();
+        channel = {};
+        $fileProgress.val(100);
 	};
     var readBlob = function(start) {
         var blob;
@@ -330,7 +512,6 @@ $(document).ready(function() {
         }
     }
 	$("#logFile").change(function() {
-		$logList.empty();
 		if (reader) {
 			$.each(this.files, function(index, file){
 				result = "";
