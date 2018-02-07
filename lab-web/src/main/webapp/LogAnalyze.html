@@ -5,6 +5,8 @@
 <meta charset="utf-8">
 <title>LOG Analyze</title>
 <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="css/bootstrap-datetimepicker.min.css">
+<link rel="stylesheet" type="text/css" href="css/toastr.min.css">
 <link rel="stylesheet" type="text/css" href="css/analyze.css">
 </head>
 <body>
@@ -24,6 +26,17 @@
 	<!-- Tab panes -->
 	<div class="tab-content">
 		<div role="tabpanel" class="tab-pane active" id="MainPanel">
+			<div class="col-md-12 col-sm-12">
+				<form class="bs-example bs-example-form" role="form">
+					<div class="input-group">
+						<input type="text" class="form-control form_datetime" id="startTime" title="开始时间">
+						<input type="text" class="form-control form_datetime" id="endTime" title="结束时间">
+						<input type="text" class="form-control" id="boxIds" placeholder="设备ID，多个使用,隔开">
+						<a href="#" class="input-group-addon" id="logDownloadBtn">下载日志</a>
+					</div>
+				</form>
+				<br>
+			</div>
 			<div class="col-md-12 col-sm-12">
 				<form>
 					<fieldset>
@@ -177,6 +190,8 @@
 	</div>
 	<script src="js/jquery-3.1.1.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
+	<script src="js/bootstrap-datetimepicker.min.js"></script>
+	<script src="js/toastr.min.js"></script>
 	<script src="js/analyze.js"></script>
 </body>
 

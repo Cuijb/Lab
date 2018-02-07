@@ -524,4 +524,42 @@ $(document).ready(function() {
 			});
 		}
 	});
+	$("#startTime").datetimepicker({
+		format: 'yyyy-mm-dd hh:ii'
+	}).val(new Date(new Date().getTime() - 24 * 60 * 60 * 1000).format("yyyy-MM-dd 08:00"));
+	$("#endTime").datetimepicker({
+		format: 'yyyy-mm-dd hh:ii'
+	}).val(new Date().format("yyyy-MM-dd HH:mm"));
+	if (!!localStorage && !!localStorage.downloadIds) {
+		$("#boxIds").val(localStorage.downloadIds);
+	}
+	$("#logDownloadBtn").click(function(){
+		var ids = $("#boxIds").val();
+		if (!!!ids) {
+		    toastr.warning("请输入要查询的盒子IDs");
+			return;
+		}
+		if (window.localStorage) {
+			localStorage.downloadIds = ids;
+		}
+		var startTime = $("#startTime").val();
+		if (!!!startTime) {
+		    toastr.warning("请输入查询开始时间");
+			return;
+		}
+		startTime = parseDate(startTime + ":00.000").getTime() / 1000;
+		var endTime = $("#endTime").val();
+		if (!!!endTime) {
+			toastr.warning("请输入查询结束时间");
+			return;
+		}
+		endTime = parseDate(endTime + ":59.999").getTime() / 1000;
+		$.each(ids.split(","), function(index, id){
+			id = id.trim();
+			if(!!id) {
+				var downloadUrl = "http://192.168.10.33:9968/csServerLog/showLog?startTime=" + startTime + "&endTime=" + endTime + "&deviceId=" + id;
+				window.open(downloadUrl, id);
+			}
+		});
+	});
 });
