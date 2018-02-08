@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html class="no-js" lang="">
+
+<head>
+<meta charset="utf-8">
+<title>LOG Analyze</title>
+<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="css/bootstrap-datetimepicker.min.css">
+<link rel="stylesheet" type="text/css" href="css/toastr.min.css">
+<link rel="stylesheet" type="text/css" href="css/analyze.css">
+</head>
+<body>
+	<nav class="navbar navbar-default navbar-fixed-top">
+		<div class="container-fluid">
+			<!-- Collect the nav links, forms, and other content for toggling -->
+			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+				<ul class="nav navbar-nav">
+					<li class="active"><a href="#MainPanel" data-toggle="tab">LOG ANALYZE - BY HOUR (20180208)</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+
+	<!-- Tab panes -->
+	<div class="tab-content">
+		<div role="tabpanel" class="tab-pane active" id="MainPanel">
+			<div class="col-md-12 col-sm-12">
+				<form>
+					<fieldset>
+						<input type="file" id="logFile" style="width:100%"/>
+						<p>
+							<progress id="fileProgress" value="0" max="100" style="width:100%"></progress>
+						</p>
+						<p id="fileStatus"></p>
+						<p id="filePercent"></p>
+					</fieldset>
+				</form>
+				<table id="liveTable"
+					class="table table-striped table-hover table-responsive">
+					<caption>
+						<h4>直播分析</h4>
+					</caption>
+					<thead>
+						<tr>
+							<th>持续时间</th>
+							<th>时长</th>
+							<th>发布耗时<br>(ms)</th>
+							<th>BC接收<br>(个)</th>
+							<th>BC接收<br>(字节)</th>
+							<th>4G下载<br>(个)</th>
+							<th>4G下载<br>(字节)</th>
+							<th>BC无效<br>(个)</th>
+							<th>4G无效<br>(个)</th>
+							<th>发布有效<br>(个)</th>
+							<th>发布AD<br>(个)</th>
+							<th>发布丢失<br>(个)</th>
+							<th>字节补包率<br>(%)</th>
+							<th>个数补包率<br>(%)</th>
+							<th>无效补包率<br>(个, %)</th>
+							<th>有效补包率<br>(个, %)</th>
+							<th>丢包率<br>(个, %)</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>暂无数据</td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	<script src="js/jquery-3.1.1.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/bootstrap-datetimepicker.min.js"></script>
+	<script src="js/toastr.min.js"></script>
+	<script src="js/analyze-hour.js"></script>
+</body>
+
+</html>
