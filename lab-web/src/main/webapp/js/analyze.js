@@ -15,8 +15,11 @@ $(document).ready(function() {
 	var PATTERN_BC_BYTES = new RegExp(REG_TIME + REG_CHANNEL + " bcRecvBytes increase ([0-9]+)");
 	var PATTERN_DLD_NUM = new RegExp(REG_TIME + REG_CHANNEL + " httpDownloadNumber increase ([0-9]+)");
 	var PATTERN_DLD_BYTES = new RegExp(REG_TIME + REG_CHANNEL + " httpRecvBytes increase ([0-9]+)");
+	var PATTERN_UNNEED_BC = new RegExp(REG_TIME + REG_CHANNEL + " notNeedBcReceive increase ([0-9]+)");
 	var PATTERN_UNNEED_D = new RegExp(REG_TIME + REG_CHANNEL + " notNeedHttpDownload increase ([0-9]+)");
 	var PATTERN_PLAY_LIST = new RegExp(REG_TIME + REG_CHANNEL + " play list is");
+	var PATTERN_PLAY_PLAY = new RegExp(REG_TIME + REG_CHANNEL + " playNumber increase ([0-9]+)");
+	var PATTERN_PLAY_AD = new RegExp(REG_TIME + REG_CHANNEL + " adNumber increase ([0-9]+)");
 	var PATTERN_PLAY_MISS = new RegExp(REG_TIME + REG_CHANNEL + " missNumber increase ([0-9]+)");
 	var PATTERN_NOT_NEED = new RegExp(REG_TIME + REG_CHANNEL + " from (BC|4G) (not needed|duplicate) seq:(\\d+)");
 	var PATTERN_CHANNEL_RESTART = new RegExp(REG_TIME + REG_CHANNEL + " will restart");
@@ -105,8 +108,11 @@ $(document).ready(function() {
 		this.bcB = 0;
 		this.dldN = 0;
 		this.dldB = 0;
+		this.unNeedBc = 0;
 		this.unNeedDld = 0;
-		this.miss = 0;
+		this.playN = 0;
+		this.adN = 0;
+		this.missN = 0;
 		this.errMsgs = [];
 		this.reset = function(){
 			if (!!this.endTime) {
@@ -133,8 +139,11 @@ $(document).ready(function() {
 			this.bcB = 0;
 			this.dldN = 0;
 			this.dldB = 0;
+			this.unNeedBc = 0;
 			this.unNeedDld = 0;
-			this.miss = 0;
+			this.playN = 0;
+			this.adN = 0;
+			this.missN = 0;
 			this.errMsgs = [];
 		};
 		this.updatePT = function(timeStr) {
@@ -234,10 +243,10 @@ $(document).ready(function() {
 			return (100.0 * (this.dldN - this.unNeedDld) / (this.bcN + this.dldN)).toFixed(2);
 		};
 		this.getMP = function(){
-			if (this.miss == 0) {
+			if (this.missN == 0) {
 				return 0;
 			}
-			return (100.0 * this.miss / (this.bcN + this.dldN - this.unNeedDld + this.miss)).toFixed(2);
+			return (100.0 * this.missN / (this.bcN + this.dldN - this.unNeedDld + this.missN)).toFixed(2);
 		};
 	};
 	var step = 1024 * 1024; // 每次读取1M
@@ -337,10 +346,13 @@ $(document).ready(function() {
 			.append($("<td>").text(count.bcB))
 			.append($("<td>").text(count.dldN))
 			.append($("<td>").text(count.dldB))
+			.append($("<td>").text(count.unNeedBc))
 			.append($("<td>").text(count.unNeedDld))
-			.append($("<td>").text(count.miss))
-			.append($("<td>").text(count.getDNP()))
+			.append($("<td>").text(count.playN))
+			.append($("<td>").text(count.adN))
+			.append($("<td>").text(count.missN))
 			.append($("<td>").text(count.getDBP()))
+			.append($("<td>").text(count.getDNP()))
 			.append($("<td>").text(count.getUNP()))
 			.append($("<td>").text(count.getNP()))
 			.append($("<td>").text(count.getMP())));
@@ -456,6 +468,14 @@ $(document).ready(function() {
 				appendLogList(index, line);
 			}
 
+			var mcUnNeedBC = line.match(PATTERN_UNNEED_BC);
+			if (mcUnNeedBC) {
+				count.updatePT(mcUnNeedBC[1]);
+				count.unNeedBc += parseInt(mcUnNeedBC[4]);
+				channel[mcUnNeedBC[3]].updatePT(mcUnNeedBC[1]);
+				channel[mcUnNeedBC[3]].unNeedBc += parseInt(mcUnNeedBC[4]);
+			}
+
 			var mcUnNeed = line.match(PATTERN_UNNEED_D);
 			if (mcUnNeed) {
 				count.updatePT(mcUnNeed[1]);
@@ -470,12 +490,28 @@ $(document).ready(function() {
 				channel[mcList[3]].updatePT(mcList[1]);
 			}
 
+			var mcPlay = line.match(PATTERN_PLAY_PLAY);
+			if (mcPlay) {
+				count.updatePT(mcPlay[1]);
+				count.playN += parseInt(mcPlay[4]);
+				channel[mcPlay[3]].updatePT(mcPlay[1]);
+				channel[mcPlay[3]].playN += parseInt(mcPlay[4]);
+			}
+
+			var mcAd = line.match(PATTERN_PLAY_AD);
+			if (mcAd) {
+				count.updatePT(mcAd[1]);
+				count.adN += parseInt(mcAd[4]);
+				channel[mcAd[3]].updatePT(mcAd[1]);
+				channel[mcAd[3]].adN += parseInt(mcAd[4]);
+			}
+
 			var mcMiss = line.match(PATTERN_PLAY_MISS);
 			if (mcMiss) {
 				count.updatePT(mcMiss[1]);
-				count.miss += parseInt(mcMiss[4]);
+				count.missN += parseInt(mcMiss[4]);
 				channel[mcMiss[3]].updatePT(mcMiss[1]);
-				channel[mcMiss[3]].miss += parseInt(mcMiss[4]);
+				channel[mcMiss[3]].missN += parseInt(mcMiss[4]);
 			}
 
 			var mcCR = line.match(PATTERN_CHANNEL_RESTART);
