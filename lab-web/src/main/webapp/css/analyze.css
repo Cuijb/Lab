@@ -3,8 +3,20 @@ html {
 	background: #f7f7f7;
 }
 
+a:hover {
+	text-decoration: none;
+}
+
 .navbar-default .navbar-nav>.active>a, .navbar-default .navbar-nav>.active>a:hover, .navbar-default .navbar-nav>.active>a:focus {
     color: #428bca;
+}
+
+.tab-content {
+	margin-top: 70px;
+}
+
+li.danger {
+	background-color: #f2dede;
 }
 
 ul.nav li:first-child a {

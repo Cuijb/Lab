@@ -21,6 +21,7 @@ $(document).ready(function() {
 	var PATTERN_PLAY_PLAY = new RegExp(REG_TIME + REG_CHANNEL + " playNumber increase ([0-9]+)");
 	var PATTERN_PLAY_AD = new RegExp(REG_TIME + REG_CHANNEL + " adNumber increase ([0-9]+)");
 	var PATTERN_PLAY_MISS = new RegExp(REG_TIME + REG_CHANNEL + " missNumber increase ([0-9]+)");
+	var PATTERN_RECEIVE_BC = new RegExp(REG_TIME + REG_CHANNEL + " BC receive seq:(\\d+) OK");
 	var PATTERN_NOT_NEED = new RegExp(REG_TIME + REG_CHANNEL + " from (BC|4G) (not needed|duplicate) seq:(\\d+)");
 	var PATTERN_CHANNEL_RESTART = new RegExp(REG_TIME + REG_CHANNEL + " will restart");
 	var PATTERN_CHANNEL_STOP = new RegExp(REG_TIME + REG_CHANNEL + " will stop");
@@ -33,7 +34,9 @@ $(document).ready(function() {
 	var $bcTable = $("#bcTable tbody");
 	var $netTable = $("#netTable tbody");
 	var $ldpcTable = $("#ldpcTable tbody");
-	var $logList = $("ul#logList");
+	var $logErrList = $("ul#logErrList");
+	var $logBCRecvDErrList = $("ul#logBCRecvDErrList");
+	var $logBCRecvSErrList = $("ul#logBCRecvSErrList");
 	var NetStatus = {
 		"0" : "无网",
 		"1" : "网络断开",
@@ -86,6 +89,12 @@ $(document).ready(function() {
         return (!!hours ? (hours + ":") : "") + (!!minutes ? (minutes + "'") : "") + (seconds + "\"");
     };
 
+    var showTimeDuration = function(startTimeStr, endTimeStr) {
+    	var startStr = parseDate(startTimeStr).format();
+    	var endStr = parseDate(endTimeStr).format().replace(startStr.substring(0, 6), "");
+    	return startStr + " ~ " + endStr
+    };
+
     var parseDate = function(timeStr) {
 		var mct = timeStr.match(PATTERN_TIME_P);
 		if (mct) {
@@ -106,6 +115,8 @@ $(document).ready(function() {
 		this.publishCost = null;
 		this.bcN = 0;
 		this.bcB = 0;
+		this.bcRecvTm = null;
+		this.bcRecvSq = null;
 		this.dldN = 0;
 		this.dldB = 0;
 		this.unNeedBc = 0;
@@ -137,6 +148,8 @@ $(document).ready(function() {
 			this.publishCost = null;
 			this.bcN = 0;
 			this.bcB = 0;
+			this.bcRecvTm = null;
+			this.bcRecvSq = null;
 			this.dldN = 0;
 			this.dldB = 0;
 			this.unNeedBc = 0;
@@ -188,6 +201,13 @@ $(document).ready(function() {
 				}
 			}
 		};
+		this.updateBcRecv = function(timeStr, sequence) {
+			if (!!this.bcRecvTm) {
+				appendBCRecvErrList(this.bcRecvTm, this.bcRecvSq, timeStr, sequence);
+			}
+			this.bcRecvTm = timeStr;
+			this.bcRecvSq = sequence;
+		};
 		this.isEmpty = function(){
 			return this.bcN <= 0 && this.dldN <= 0;
 		};
@@ -199,9 +219,7 @@ $(document).ready(function() {
 				return "unknown";
 			}
 
-			var startStr = parseDate(this.startTime).format();
-			var endStr = parseDate(this.endTime).format().replace(startStr.substring(0, 6), "");
-			return startStr + " ~ " + endStr
+			return showTimeDuration(this.startTime, this.endTime);
 		};
 		this.getPT = function(){
 			if (!this.startTime) {
@@ -330,8 +348,25 @@ $(document).ready(function() {
 				.append($("<td>").text(showTime(ed.getTime() - sd.getTime())))
 				.append($("<td>").text(value)));
 	};
-	var appendLogList = function(index, line) {
-		$logList.append($("<li>").addClass("list-group-item").text(index + " - " + line));
+	var appendLog4GErrList = function(index, line) {
+		$logErrList.append($("<li>").addClass("list-group-item").text(index + " - " + line));
+	};
+	var appendBCRecvErrList = function(preTimeStr, preSeqStr, nextTimeStr, nextSeqStr) {
+		var preDate = parseDate(preTimeStr);
+		var preSeq = parseInt(preSeqStr);
+		var nextDate = parseDate(nextTimeStr);
+		var nextSeq = parseInt(nextSeqStr);
+		var duration = nextDate.getTime() - preDate.getTime();
+		var num = nextSeq - preSeq;
+		if (duration >= (num + 1) * 2 * 1000) {
+			$logBCRecvDErrList.append($("<li>").addClass("list-group-item").addClass(duration >= 10 * 1000 ? "danger" : "")
+				.text(showTimeDuration(preTimeStr, nextTimeStr) + "，    " + preSeq + " -> " + nextSeq + "，    接收间隔过长: " + showTime(duration)));
+		}
+		if (num != 1) {
+			$logBCRecvSErrList.append($("<li>").addClass("list-group-item").addClass(duration >= 10 * 1000 ? "danger" : "")
+				.text(showTimeDuration(preTimeStr, nextTimeStr) + "，    " + preSeq + " -> " + nextSeq + "，    序号不连续: " + num));
+		}
+		
 	};
 	var appendResult = function(desc, count) {
     	if (count.isEmpty()) {
@@ -346,11 +381,11 @@ $(document).ready(function() {
 			.append($("<td>").text(count.bcB))
 			.append($("<td>").text(count.dldN))
 			.append($("<td>").text(count.dldB))
-			.append($("<td>").text(count.unNeedBc))
-			.append($("<td>").text(count.unNeedDld))
+			.append($("<td>").addClass(count.unNeedBc > 0 ? "danger" : "").text(count.unNeedBc))
+			.append($("<td>").addClass(count.unNeedDld > 0 ? "danger" : "").text(count.unNeedDld))
 			.append($("<td>").text(count.playN))
-			.append($("<td>").text(count.adN))
-			.append($("<td>").text(count.missN))
+			.append($("<td>").addClass(count.adN > 0 ? "danger" : "").text(count.adN))
+			.append($("<td>").addClass(count.missN > 0 ? "danger" : "").text(count.missN))
 			.append($("<td>").text(count.getDBP()))
 			.append($("<td>").text(count.getDNP()))
 			.append($("<td>").text(count.getUNP()))
@@ -372,7 +407,9 @@ $(document).ready(function() {
 		$netTable.empty();
 		$bcTable.empty();
 		$ldpcTable.empty();
-        $logList.empty();
+        $logErrList.empty();
+        $logBCRecvDErrList.empty();
+        $logBCRecvSErrList.empty();
         for (var index in lines) {
         	var line = lines[index];
 			var mcMBox = line.match(PATTERN_MBOX);
@@ -463,9 +500,14 @@ $(document).ready(function() {
 				channel[mcDLDB[3]].dldB += parseInt(mcDLDB[4]);
 			}
 
+			var mcBR = line.match(PATTERN_RECEIVE_BC);
+			if (mcBR && "0" != mcBR[4]) {
+				channel[mcBR[3]].updateBcRecv(mcBR[1], mcBR[4]);
+			}
+
 			var mcNN = line.match(PATTERN_NOT_NEED);
 			if (mcNN) {
-				appendLogList(index, line);
+				appendLog4GErrList(index, line);
 			}
 
 			var mcUnNeedBC = line.match(PATTERN_UNNEED_BC);

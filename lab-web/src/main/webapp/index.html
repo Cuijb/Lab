@@ -10,14 +10,14 @@
 <link rel="stylesheet" type="text/css" href="css/analyze.css">
 </head>
 <body>
-	<nav class="navbar navbar-default">
+	<nav class="navbar navbar-default navbar-fixed-top">
 		<div class="container-fluid">
 			<!-- Collect the nav links, forms, and other content for toggling -->
-			<div class="collapse navbar-collapse"
-				id="bs-example-navbar-collapse-1">
+			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 				<ul class="nav navbar-nav">
 					<li class="active"><a href="#MainPanel" data-toggle="tab">LOG ANALYZE (20180115)</a></li>
-					<li><a href="#LogPannel" data-toggle="tab">无效下载相关日志</a></li>
+					<li><a href="#LogErrPannel" data-toggle="tab">异常分片</a></li>
+					<li><a href="#LogBCErrPannel" data-toggle="tab">BC接收异常</a></li>
 				</ul>
 			</div>
 		</div>
@@ -27,15 +27,25 @@
 	<div class="tab-content">
 		<div role="tabpanel" class="tab-pane active" id="MainPanel">
 			<div class="col-md-12 col-sm-12">
-				<form class="bs-example bs-example-form" role="form">
-					<div class="input-group">
-						<input type="text" class="form-control form_datetime" id="startTime" title="开始时间">
-						<input type="text" class="form-control form_datetime" id="endTime" title="结束时间">
-						<input type="text" class="form-control" id="boxIds" placeholder="设备ID，多个使用,隔开">
-						<a href="#" class="input-group-addon" id="logDownloadBtn">下载日志</a>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<a data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
+							<h4 class="panel-title">日志下载</h4>
+						</a>
 					</div>
-				</form>
-				<br>
+					<div id="collapseThree" class="panel-collapse collapse">
+						<div class="panel-body">
+							<form class="bs-example bs-example-form" role="form">
+								<div class="input-group">
+									<input type="text" class="form-control form_datetime" id="startTime" title="开始时间">
+									<input type="text" class="form-control form_datetime" id="endTime" title="结束时间">
+									<input type="text" class="form-control" id="boxIds" placeholder="设备ID，多个使用,隔开" title="设备ID，多个使用,隔开">
+									<a href="#" class="input-group-addon" id="logDownloadBtn">下载日志</a>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
 			</div>
 			<div class="col-md-12 col-sm-12">
 				<form>
@@ -188,10 +198,24 @@
 				</table>
 			</div>
 		</div>
-		<div role="tabpanel" class="tab-pane" id="LogPannel">
+		<div role="tabpanel" class="tab-pane" id="LogErrPannel">
 			<div class="col-md-12 col-sm-12">
 				<h4>部分日志</h4>
-				<ul class="list-group" id="logList">
+				<ul class="list-group" id="logErrList">
+					<li class="list-group-item">无日志</li>
+				</ul>
+			</div>
+		</div>
+		<div role="tabpanel" class="tab-pane" id="LogBCErrPannel">
+			<div class="col-md-6 col-sm-12">
+				<h4>间隔过长</h4>
+				<ul class="list-group" id="logBCRecvDErrList">
+					<li class="list-group-item">无日志</li>
+				</ul>
+			</div>
+			<div class="col-md-6 col-sm-12">
+				<h4>序号不连续</h4>
+				<ul class="list-group" id="logBCRecvSErrList">
 					<li class="list-group-item">无日志</li>
 				</ul>
 			</div>
