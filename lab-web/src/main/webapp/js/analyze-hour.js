@@ -273,8 +273,6 @@ $(document).ready(function() {
         	var line = lines[index];
 			var mcMBox = line.match(PATTERN_MBOX);
 			if (mcMBox) {
-				showResult();
-	            count.reset();
 				count.updatePT(mcMBox[1]);
 			}
 
