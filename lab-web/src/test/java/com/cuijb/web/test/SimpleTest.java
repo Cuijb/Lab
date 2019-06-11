@@ -14,11 +14,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 
 import com.cuijb.web.vo.Student;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class SimpleTest extends BaseTest {
 
 	private static List<Integer> IMMEDIATE_START = new ArrayList<>();
@@ -145,5 +149,15 @@ public class SimpleTest extends BaseTest {
 			return "something";
 		}
 
+	}
+
+	@Test
+	public void bbb() {
+		Pattern aaa = Pattern
+				.compile("([1-9].* \\[.*?\\]|[1-9].*?)\\s+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& CHANNEL START");
+		log.info("found: {}",
+				aaa.matcher(
+						"2019-04-26 11:56:06.360 [csServer-dtm] [INFO] 1003-0-2 [BFP-Apk] &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& CHANNEL START")
+						.find());
 	}
 }

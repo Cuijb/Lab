@@ -8,7 +8,9 @@ import org.junit.Test;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ListTest {
 	ThreadLocal<MyObj> aaa = new ThreadLocal<>();
 
@@ -79,5 +81,12 @@ public class ListTest {
 				}
 			}
 		}
+	}
+
+	@Test
+	public void aaa() {
+		log.info("null == 1 : {}", new Integer(1).equals(null));
+		Object[] objs = new Object[10];
+		log.info("objs[2] is: {}", objs[2]);
 	}
 }

@@ -201,9 +201,9 @@ $(document).ready(function() {
 				}
 			}
 		};
-		this.updateBcRecv = function(timeStr, sequence) {
+		this.updateBcRecv = function(channelStr, timeStr, sequence) {
 			if (!!this.bcRecvTm) {
-				appendBCRecvErrList(this.bcRecvTm, this.bcRecvSq, timeStr, sequence);
+				appendBCRecvErrList(channelStr, this.bcRecvTm, this.bcRecvSq, timeStr, sequence);
 			}
 			this.bcRecvTm = timeStr;
 			this.bcRecvSq = sequence;
@@ -351,7 +351,7 @@ $(document).ready(function() {
 	var appendLog4GErrList = function(index, line) {
 		$logErrList.append($("<li>").addClass("list-group-item").text(index + " - " + line));
 	};
-	var appendBCRecvErrList = function(preTimeStr, preSeqStr, nextTimeStr, nextSeqStr) {
+	var appendBCRecvErrList = function(channelStr, preTimeStr, preSeqStr, nextTimeStr, nextSeqStr) {
 		var preDate = parseDate(preTimeStr);
 		var preSeq = parseInt(preSeqStr);
 		var nextDate = parseDate(nextTimeStr);
@@ -360,11 +360,11 @@ $(document).ready(function() {
 		var num = nextSeq - preSeq;
 		if (duration >= (num + 1) * 2 * 1000) {
 			$logBCRecvDErrList.append($("<li>").addClass("list-group-item").addClass(duration >= 10 * 1000 ? "danger" : "")
-				.text(showTimeDuration(preTimeStr, nextTimeStr) + "，    " + preSeq + " -> " + nextSeq + "，    接收间隔过长: " + showTime(duration)));
+				.text(channelStr + "，  " + showTimeDuration(preTimeStr, nextTimeStr) + "，" + preSeq + " -> " + nextSeq + "，    接收间隔过长: " + showTime(duration)));
 		}
 		if (num != 1) {
 			$logBCRecvSErrList.append($("<li>").addClass("list-group-item").addClass(duration >= 10 * 1000 ? "danger" : "")
-				.text(showTimeDuration(preTimeStr, nextTimeStr) + "，    " + preSeq + " -> " + nextSeq + "，    序号不连续: " + num));
+				.text(channelStr + "，  " + showTimeDuration(preTimeStr, nextTimeStr) + "，    " + preSeq + " -> " + nextSeq + "，    序号不连续: " + num));
 		}
 		
 	};
@@ -502,7 +502,7 @@ $(document).ready(function() {
 
 			var mcBR = line.match(PATTERN_RECEIVE_BC);
 			if (mcBR && "0" != mcBR[4]) {
-				channel[mcBR[3]].updateBcRecv(mcBR[1], mcBR[4]);
+				channel[mcBR[3]].updateBcRecv(mcBR[3], mcBR[1], mcBR[4]);
 			}
 
 			var mcNN = line.match(PATTERN_NOT_NEED);
